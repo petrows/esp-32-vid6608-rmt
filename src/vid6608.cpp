@@ -139,9 +139,15 @@ void vid6608::driverTaskStart(void *arg) {
 
 void vid6608::moveRamp(int32_t steps) {
     if (steps == 0) return;
+    uint8_t newTargetDir = steps > 0 ? 0 : 1;
     gpio_set_level(this->config.dirPin, steps > 0 ? 0 : 1);
     uint32_t n = static_cast<uint32_t>(steps > 0 ? steps : -steps);
-    ESP_LOGI(TAG, "D %d, Ramp move: %d", this->config.stepPin, steps);
+    ESP_LOGD(TAG, "D %d, Ramp move: %d", this->config.stepPin, steps);
+    if (newTargetDir != this->targetDir) {
+        // Direction changed -> add delay (as required by Datasheet)
+        this->targetDir = newTargetDir;
+        vTaskDelay(pdMS_TO_TICKS(1));
+    }
 
     // Triangular fallback when the move is too short for a full ramp pair.
     uint32_t rampSteps = static_cast<uint32_t>(kAccelSteps);

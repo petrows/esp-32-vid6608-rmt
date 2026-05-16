@@ -1,0 +1,26 @@
+name: ESP-IDF CI
+on: [push]
+jobs:
+  build:
+    runs-on: self-hosted
+    strategy:
+      matrix:
+        idf:
+            - v6.0
+            - v5.5
+        example:
+            - gauge-cal
+        target:
+            - esp32
+            - esp32c6
+    container:
+      image: espressif/idf:release-${{ matrix.idf }}
+      options: -u 2025:2025
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build ${{ matrix.example }} on ${{ matrix.target }}
+        run: |
+            cd examples/${{ matrix.example }}
+            idf.py build
+        env:
+          IDF_TARGET: ${{ matrix.target }}

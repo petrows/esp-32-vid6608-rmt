@@ -58,6 +58,7 @@ private:
 
     int32_t targetPosition     = 0;    // Target position in steps
     int32_t targetPositionNext = 0;    // Target position in steps (scheduled for next move)
+    uint8_t targetDir          = 254;  // Target direction to move
 
     // Scratch RMT symbol buffers. The copy encoder pulls bytes from the
     // source pointer asynchronously, so they must outlive each transmission
