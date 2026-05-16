@@ -18,9 +18,19 @@ jobs:
       options: -u 2025:2025
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ${{ github.workspace }}/.cache/ccache
+          key: idf-${{ matrix.idf }}-${{ matrix.target }}-${{ matrix.example }}
       - name: Build ${{ matrix.example }} on ${{ matrix.target }}
+        shell: bash
         run: |
+            source /opt/esp/idf/export.sh
             cd examples/${{ matrix.example }}
             idf.py build
+            ccache -s
         env:
           IDF_TARGET: ${{ matrix.target }}
+          IDF_CCACHE_ENABLE: "1"
+          CCACHE_DIR: ${{ github.workspace }}/.cache/ccache
