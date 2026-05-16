@@ -5,6 +5,23 @@
 static constexpr uint32_t RMT_RES_HZ = 1'000'000;  // 1 тик = 1 мкс
 static const char       *TAG         = "vid6608";
 
+std::array<uint16_t, vid6608::kAccelSteps> vid6608::buildAccelCurve() {
+    // Linear ramp from startHz up to cruiseHz over kAccelSteps pulses.
+    // Edit these two frequencies to retune the shipped profile.
+    constexpr float startHz  = 250.0f;
+    constexpr float cruiseHz = 1000.0f;
+    std::array<uint16_t, kAccelSteps> out{};
+    for (size_t i = 0; i < kAccelSteps; ++i) {
+        float t  = float(i + 1) / float(kAccelSteps);
+        float hz = startHz + (cruiseHz - startHz) * t;
+        out[i]   = static_cast<uint16_t>(float(RMT_RES_HZ) / (hz * 2.0f));
+    }
+    return out;
+}
+
+const std::array<uint16_t, vid6608::kAccelSteps> vid6608::kAccelHalfPeriod =
+    vid6608::buildAccelCurve();
+
 vid6608::vid6608(const Config &cfg) : config(cfg) {
     gpio_config_t io = {
         .pin_bit_mask = (1ULL << this->config.dirPin),
@@ -60,11 +77,13 @@ void vid6608::zero() {
     this->targetPositionNext = 0;
     this->targetPosition = 0;
     int32_t maxSteps = this->config.maxSteps;
-    this->moveCommand(maxSteps, 1000);
+    this->moveRamp(maxSteps);
     this->wait();
-    this->moveCommand(-maxSteps, 1000);
+    this->moveRamp(-maxSteps);
     this->wait();
-    this->moveCommand(-24, 100);
+    // Gentle final strike against the mechanical stop — bypass the ramp so
+    // the impact is soft and predictable.
+    this->moveConst(-24, 100);
     this->wait();
     xSemaphoreGive(this->infoMutex);
 }
@@ -104,7 +123,7 @@ void vid6608::driverTask() {
         xSemaphoreGive(this->infoMutex);
         // We need move?
         if (targetMove) {
-            this->moveCommand(targetMove, 1000);
+            this->moveRamp(targetMove);
             this->wait();
             continue; // New loop
         }
@@ -117,19 +136,66 @@ void vid6608::driverTaskStart(void *arg) {
     static_cast<vid6608 *>(arg)->driverTask();
 }
 
-void vid6608::moveCommand(int32_t steps, int32_t speed_hz) {
+void vid6608::moveRamp(int32_t steps) {
     if (steps == 0) return;
     gpio_set_level(this->config.dirPin, steps > 0 ? 0 : 1);
-    uint32_t n    = steps > 0 ? steps : -steps;
-    ESP_LOGI(TAG, "D %d, Move: %d", this->config.stepPin, steps);
-    uint16_t half = RMT_RES_HZ / (speed_hz * 2);
+    uint32_t n = static_cast<uint32_t>(steps > 0 ? steps : -steps);
+    ESP_LOGI(TAG, "D %d, Ramp move: %d", this->config.stepPin, steps);
 
-    rmt_symbol_word_t pulse = {
-        .duration0 = half, .level0 = 1,
-        .duration1 = half, .level1 = 0,
-    };
+    // Triangular fallback when the move is too short for a full ramp pair.
+    uint32_t rampSteps = static_cast<uint32_t>(kAccelSteps);
+    if (n < 2 * rampSteps) {
+        rampSteps = n / 2;
+    }
+    uint32_t cruiseSteps = n - 2 * rampSteps;
+
+    for (uint32_t i = 0; i < rampSteps; ++i) {
+        uint16_t h = kAccelHalfPeriod[i];
+        accelBuf[i].duration0 = h; accelBuf[i].level0 = 1;
+        accelBuf[i].duration1 = h; accelBuf[i].level1 = 0;
+    }
+    for (uint32_t i = 0; i < rampSteps; ++i) {
+        uint16_t h = kAccelHalfPeriod[rampSteps - 1 - i];
+        decelBuf[i].duration0 = h; decelBuf[i].level0 = 1;
+        decelBuf[i].duration1 = h; decelBuf[i].level1 = 0;
+    }
 
     rmt_transmit_config_t tx = {};
-    tx.loop_count = (int)n - 1;   // сам символ + (n-1) повторов = n импульсов
-    ESP_ERROR_CHECK(rmt_transmit(this->chan, this->enc, &pulse, sizeof(pulse), &tx));
+
+    if (rampSteps > 0) {
+        tx.loop_count = 0;
+        ESP_ERROR_CHECK(rmt_transmit(this->chan, this->enc, accelBuf,
+                                     rampSteps * sizeof(rmt_symbol_word_t), &tx));
+    }
+    if (cruiseSteps > 0) {
+        // For a partial (triangular) ramp the cruise speed is whatever peak
+        // the partial ramp reached, not the full top of the curve.
+        uint16_t h = rampSteps > 0 ? kAccelHalfPeriod[rampSteps - 1]
+                                   : kAccelHalfPeriod[0];
+        cruisePulse.duration0 = h; cruisePulse.level0 = 1;
+        cruisePulse.duration1 = h; cruisePulse.level1 = 0;
+        tx.loop_count = static_cast<int>(cruiseSteps) - 1;
+        ESP_ERROR_CHECK(rmt_transmit(this->chan, this->enc, &cruisePulse,
+                                     sizeof(cruisePulse), &tx));
+    }
+    if (rampSteps > 0) {
+        tx.loop_count = 0;
+        ESP_ERROR_CHECK(rmt_transmit(this->chan, this->enc, decelBuf,
+                                     rampSteps * sizeof(rmt_symbol_word_t), &tx));
+    }
+}
+
+void vid6608::moveConst(int32_t steps, int32_t speed_hz) {
+    if (steps == 0) return;
+    gpio_set_level(this->config.dirPin, steps > 0 ? 0 : 1);
+    uint32_t n    = static_cast<uint32_t>(steps > 0 ? steps : -steps);
+    ESP_LOGI(TAG, "D %d, Const move: %d @ %d Hz", this->config.stepPin, steps, speed_hz);
+    uint16_t half = RMT_RES_HZ / (speed_hz * 2);
+
+    cruisePulse.duration0 = half; cruisePulse.level0 = 1;
+    cruisePulse.duration1 = half; cruisePulse.level1 = 0;
+
+    rmt_transmit_config_t tx = {};
+    tx.loop_count = static_cast<int>(n) - 1;   // сам символ + (n-1) повторов = n импульсов
+    ESP_ERROR_CHECK(rmt_transmit(this->chan, this->enc, &cruisePulse, sizeof(cruisePulse), &tx));
 }
