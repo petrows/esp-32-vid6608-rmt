@@ -77,13 +77,13 @@ void vid6608::zero() {
     this->targetPositionNext = 0;
     this->targetPosition = 0;
     int32_t maxSteps = this->config.maxSteps;
-    this->moveRamp(maxSteps);
+    this->moveConst(maxSteps, 2000);
     this->wait();
-    this->moveRamp(-maxSteps);
+    this->moveConst(-maxSteps, 1000);
     this->wait();
     // Gentle final strike against the mechanical stop — bypass the ramp so
     // the impact is soft and predictable.
-    this->moveConst(-24, 100);
+    this->moveConst(-12, 100);
     this->wait();
     xSemaphoreGive(this->infoMutex);
 }
@@ -124,6 +124,7 @@ void vid6608::driverTask() {
         // We need move?
         if (targetMove) {
             this->moveRamp(targetMove);
+            // this->moveConst(targetMove, 1000);
             this->wait();
             continue; // New loop
         }
