@@ -79,7 +79,7 @@ void vid6608::zero() {
     int32_t maxSteps = this->config.maxSteps;
     this->moveConst(maxSteps, 2000);
     this->wait();
-    this->moveConst(-maxSteps, 1000);
+    this->moveRamp(-maxSteps);
     this->wait();
     // Gentle final strike against the mechanical stop — bypass the ramp so
     // the impact is soft and predictable.

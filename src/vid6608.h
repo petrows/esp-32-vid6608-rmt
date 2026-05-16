@@ -81,7 +81,7 @@ private:
      * user-tunable. A move shorter than @c 2*kAccelSteps uses a triangular
      * profile and never reaches the cruise rate.
      */
-    static constexpr size_t kAccelSteps = 48;
+    static constexpr size_t kAccelSteps = 128;
 
     /**
      * @brief Build the per-step half-period table at startup.
