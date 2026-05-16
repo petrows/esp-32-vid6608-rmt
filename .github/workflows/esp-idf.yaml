@@ -34,3 +34,7 @@ jobs:
           IDF_TARGET: ${{ matrix.target }}
           IDF_CCACHE_ENABLE: "1"
           CCACHE_DIR: ${{ github.workspace }}/.cache/ccache
+          TERM: xterm-256color
+          CLICOLOR_FORCE: "1"
+          FORCE_COLOR: "1"
+          PY_COLORS: "1"
