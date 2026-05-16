@@ -12,35 +12,90 @@
 
 class vid6608 {
 public:
+    /**
+     * @brief Configuration struct
+     *
+     */
     struct Config {
-        gpio_num_t  stepPin;
-        gpio_num_t  dirPin;
-        uint16_t    maxSteps;
+        gpio_num_t  stepPin;    ///< f(scx) pin
+        gpio_num_t  dirPin;     ///< CC/CCWA pin
+        uint16_t    maxSteps;   ///< Max steps er full rotation
     };
 
+    /**
+     * @brief Construct a new vid6608 object
+     *
+     * @param cfg Configuration struct
+     */
     explicit vid6608(const Config &cfg);
     ~vid6608();
 
     vid6608(const vid6608 &)            = delete;
     vid6608 &operator=(const vid6608 &) = delete;
 
+    /**
+     * @brief Resets zero position to actual 0 position
+     *
+     * Moves full rotation forward and backward
+     *
+     * @warning this function is blocking, execution is delayed upon done
+     */
     void        zero();
+
+    /**
+     * @brief Wait for current move task to complete
+     *
+     */
     void        wait();
+
+    /**
+     * @brief Shedules movement to defined absolute position
+     *
+     * Input is checked for sanity: must be in range 0...maxSteps-1. Values bigger are threated as maxSteps-1.
+     * @warning this function is asynchronous, actual movement is done in another task.
+     * @warning next move will be scheduled after current move is done to avoid drive jittering.
+     *
+     * @param position absolute position in range 0...maxSteps-1
+     */
     void        setPos(int32_t steps);
 
+    /**
+     * @brief Get the Max Steps object
+     *
+     * @return uint16_t max steps, defined for this drive
+     */
     uint16_t    getMaxSteps() { return this->config.maxSteps; }
+
+    /**
+     * @brief Get the Current Position object
+     *
+     * @return int32_t current position (sheduled at this moment, actual move may apply)
+     */
     int32_t     getCurrentPosition() { return this->targetPosition; }
 
 private:
-    // Acceleration profile baked into the library — not user-tunable.
-    // Each entry is the half-period of one pulse, in RMT ticks (1 µs).
-    // Index 0 is the slowest pulse (start of motion); the last index
-    // is the fastest pulse (cruise). Deceleration walks the table in reverse.
-    // A move shorter than 2*kAccelSteps uses a triangular profile and never
-    // reaches the cruise rate.
+    /**
+     * @brief Length of the acceleration ramp, in step pulses.
+     *
+     * The acceleration profile is baked into the library and is not
+     * user-tunable. A move shorter than @c 2*kAccelSteps uses a triangular
+     * profile and never reaches the cruise rate.
+     */
     static constexpr size_t kAccelSteps = 48;
 
+    /**
+     * @brief Build the per-step half-period table at startup.
+     *
+     * @return Array of half-periods in RMT ticks (1 µs each).
+     */
     static std::array<uint16_t, kAccelSteps> buildAccelCurve();
+
+    /**
+     * @brief Per-step half-period for the acceleration ramp (RMT ticks).
+     *
+     * Index 0 is the slowest pulse (start of motion); the last index is the
+     * fastest pulse (cruise). Deceleration walks the table in reverse.
+     */
     static const std::array<uint16_t, kAccelSteps> kAccelHalfPeriod;
 
     void        moveRamp(int32_t steps);
@@ -56,14 +111,20 @@ private:
     SemaphoreHandle_t    taskNotify = nullptr;
     TaskHandle_t         taskHandle = nullptr;
 
-    int32_t targetPosition     = 0;    // Target position in steps
-    int32_t targetPositionNext = 0;    // Target position in steps (scheduled for next move)
-    uint8_t targetDir          = 254;  // Target direction to move
+    int32_t targetPosition     = 0;    ///< Target position in steps
+    int32_t targetPositionNext = 0;    ///< Target position in steps (scheduled for next move)
+    uint8_t targetDir          = 254;  ///< Target direction to move
 
-    // Scratch RMT symbol buffers. The copy encoder pulls bytes from the
-    // source pointer asynchronously, so they must outlive each transmission
-    // — every move is followed by wait() before the next reuses them.
+    /**
+     * @brief Scratch RMT symbol buffers used by every move.
+     *
+     * The copy encoder pulls bytes from the source pointer asynchronously,
+     * so these buffers must outlive each transmission — every move is
+     * followed by @ref wait() before the next one reuses them.
+     * @{
+     */
     rmt_symbol_word_t accelBuf[kAccelSteps]{};
     rmt_symbol_word_t decelBuf[kAccelSteps]{};
     rmt_symbol_word_t cruisePulse{};
+    /** @} */
 };
