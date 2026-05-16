@@ -47,13 +47,24 @@ extern "C" void app_main(void)
     float steps_step_2 = steps_deg_2 * 12;
     float steps_total_2 = 0;
 
-    for (int x=0; x<=GAUGE_TEST_STEPS; x++) {
-        ESP_LOGI(TAG, "Step: %d", x);
-        m1.setPos(static_cast<int32_t>(steps_total_1));
-        vTaskDelay(pdMS_TO_TICKS(2000));
-        m2.setPos(static_cast<int32_t>(steps_total_2));
-        vTaskDelay(pdMS_TO_TICKS(2000));
-        steps_total_1 += steps_step_1;
-        steps_total_2 += steps_step_2;
+    bool dir = true;
+
+    for (int d=0; d<10; d++) {
+        for (int x=0; x<GAUGE_TEST_STEPS; x++) {
+            ESP_LOGI(TAG, "Step: %d", x);
+            if (dir) {
+                steps_total_1 += steps_step_1;
+                steps_total_2 += steps_step_2;
+            } else {
+                steps_total_1 -= steps_step_1;
+                steps_total_2 -= steps_step_2;
+            }
+            m1.setPos(static_cast<int32_t>(steps_total_1));
+            vTaskDelay(pdMS_TO_TICKS(2000));
+            m2.setPos(static_cast<int32_t>(steps_total_2));
+            vTaskDelay(pdMS_TO_TICKS(2000));
+        }
+        vTaskDelay(pdMS_TO_TICKS(5000));
+        dir = !dir;
     }
 }
