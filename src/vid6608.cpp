@@ -72,13 +72,23 @@ vid6608::~vid6608() {
     if (this->enc) rmt_del_encoder(this->enc);
 }
 
-void vid6608::zero() {
+void vid6608::zero(int32_t initialPos) {
     xSemaphoreTake(this->infoMutex, portMAX_DELAY);
     this->targetPositionNext = 0;
     this->targetPosition = 0;
     int32_t maxSteps = this->config.maxSteps;
-    this->moveConst(maxSteps, 2000);
+    // Pre-defined modes: half-fw/full-back
+    if (ZERO_BACK_HALF == initialPos) {
+        initialPos = config.maxSteps / 2;
+    }
+    // Sanity check
+    if (initialPos < 0) { initialPos = 0; }
+    if (initialPos > maxSteps - 1) { initialPos = maxSteps - 1; }
+    // Move back the rest of gauge
+    int32_t stepsBack = (maxSteps - 1) - initialPos;
+    this->moveConst(stepsBack, 2000);
     this->wait();
+    // Move forward the whole scale
     this->moveRamp(-maxSteps);
     this->wait();
     // Gentle final strike against the mechanical stop — bypass the ramp so
@@ -89,7 +99,9 @@ void vid6608::zero() {
 }
 
 void vid6608::wait() {
+    ESP_LOGD(TAG, "D %d, wait start", this->config.stepPin);
     ESP_ERROR_CHECK(rmt_tx_wait_all_done(this->chan, -1));
+    ESP_LOGD(TAG, "D %d, wait done", this->config.stepPin);
 }
 
 void vid6608::setPos(int32_t steps) {
@@ -108,7 +120,7 @@ void vid6608::driverTask() {
         if (this->targetPositionNext < 0) {
             this->targetPositionNext = 0;
         }
-        if (this->targetPositionNext > this->config.maxSteps) {
+        if (this->targetPositionNext > this->config.maxSteps - 1) {
             this->targetPositionNext = this->config.maxSteps - 1;
         }
         if (this->targetPositionNext != this->targetPosition) {
@@ -119,9 +131,10 @@ void vid6608::driverTask() {
         xSemaphoreGive(this->infoMutex);
         // We need move?
         if (targetMove) {
-            this->moveRamp(targetMove);
-            // this->moveConst(targetMove, 1000);
-            this->wait();
+            // this->moveRamp(targetMove);
+            this->moveConst(targetMove, 1000);
+            // Wait for RMT done
+            ESP_ERROR_CHECK(rmt_tx_wait_all_done(this->chan, 5000));
             continue; // New loop
         }
         // Nothing to do: wait for info updates
@@ -186,13 +199,15 @@ void vid6608::moveRamp(int32_t steps) {
         ESP_ERROR_CHECK(rmt_transmit(this->chan, this->enc, decelBuf,
                                      rampSteps * sizeof(rmt_symbol_word_t), &tx));
     }
+    // Move done: Notify thread
+    xSemaphoreGive(this->taskNotify);
 }
 
 void vid6608::moveConst(int32_t steps, int32_t speed_hz) {
     if (steps == 0) return;
     gpio_set_level(this->config.dirPin, steps > 0 ? 0 : 1);
     uint32_t n    = static_cast<uint32_t>(steps > 0 ? steps : -steps);
-    ESP_LOGI(TAG, "D %d, Const move: %d @ %d Hz", this->config.stepPin, steps, speed_hz);
+    ESP_LOGD(TAG, "D %d, Const move: %d @ %d Hz", this->config.stepPin, steps, speed_hz);
     uint16_t half = RMT_RES_HZ / (speed_hz * 2);
 
     cruisePulse.duration0 = half; cruisePulse.level0 = 1;
@@ -201,4 +216,6 @@ void vid6608::moveConst(int32_t steps, int32_t speed_hz) {
     rmt_transmit_config_t tx = {};
     tx.loop_count = static_cast<int>(n) - 1;   // сам символ + (n-1) повторов = n импульсов
     ESP_ERROR_CHECK(rmt_transmit(this->chan, this->enc, &cruisePulse, sizeof(cruisePulse), &tx));
+    // Move done: Notify thread
+    xSemaphoreGive(this->taskNotify);
 }

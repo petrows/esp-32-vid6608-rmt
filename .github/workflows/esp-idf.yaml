@@ -10,6 +10,8 @@ jobs:
             - v5.5
         example:
             - gauge-cal
+            - move-test
+            - move-test-2
         target:
             - esp32
             - esp32c6
@@ -38,3 +40,4 @@ jobs:
           CLICOLOR_FORCE: "1"
           FORCE_COLOR: "1"
           PY_COLORS: "1"
+          CMAKE_COLOR_DIAGNOSTICS: "ON"

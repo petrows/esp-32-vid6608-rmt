@@ -1,18 +1,14 @@
-#include <stdlib.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "driver/rmt_tx.h"
-#include "driver/gpio.h"
-#include "esp_log.h"
-#include "esp_random.h"
+/**
+ * @brief This example makes 2x reset routine and then move each needle with 10% step forward and back
+ *
+ */
 
 #include "vid6608.h"
 
-#define STEP_PIN     GPIO_NUM_14
-#define DIR_PIN      GPIO_NUM_18
-#define RMT_RES_HZ   1000000   // 1 тик = 1 мкс
+#include "esp_log.h"
+#include "esp_random.h"
 
-static const char *TAG = "stepper";
+static const char *TAG = "VID6608";
 
 #define GAUGE_RANGE_DEG_1 275
 #define GAUGE_RANGE_DEG_2 272

@@ -1,18 +1,14 @@
-#include <stdlib.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "driver/rmt_tx.h"
-#include "driver/gpio.h"
-#include "esp_log.h"
-#include "esp_random.h"
+/**
+ * @brief Simple test to move 2 gauges randomly
+ *
+ */
 
 #include "vid6608.h"
 
-#define STEP_PIN     GPIO_NUM_14
-#define DIR_PIN      GPIO_NUM_18
-#define RMT_RES_HZ   1000000   // 1 тик = 1 мкс
+#include "esp_log.h"
+#include "esp_random.h"
 
-static const char *TAG = "stepper";
+static const char *TAG = "VID6608";
 
 extern "C" void app_main(void)
 {
@@ -30,13 +26,19 @@ extern "C" void app_main(void)
     };
     vid6608 m2 = vid6608(m2Cfg);
 
+    ESP_LOGI(TAG, "Zero 1");
+
     m1.zero();
     m2.zero();
 
     vTaskDelay(pdMS_TO_TICKS(1500));
 
+    ESP_LOGI(TAG, "Zero 2");
+
     m1.zero();
     m2.zero();
+
+    ESP_LOGI(TAG, "Zero done");
 
     for (int x=0; x<128; x++) {
         int32_t rndMove = 0;

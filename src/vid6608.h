@@ -33,14 +33,21 @@ public:
     vid6608(const vid6608 &)            = delete;
     vid6608 &operator=(const vid6608 &) = delete;
 
+    enum MoveState {
+      ZERO_BACK_FULL = 0,
+      ZERO_BACK_HALF = -2,
+    };
+
     /**
      * @brief Resets zero position to actual 0 position
      *
      * Moves full rotation forward and backward
      *
+     * @param initialPos initial position to assume zeroing, default is 0. If you know the "old" gauge position, you can provide it here to avoid end-stop bounce
+     *
      * @warning this function is blocking, execution is delayed upon done
      */
-    void        zero();
+    void        zero(int32_t initialPos = ZERO_BACK_HALF);
 
     /**
      * @brief Wait for current move task to complete
@@ -81,7 +88,7 @@ private:
      * user-tunable. A move shorter than @c 2*kAccelSteps uses a triangular
      * profile and never reaches the cruise rate.
      */
-    static constexpr size_t kAccelSteps = 128;
+    static constexpr size_t kAccelSteps = 32;
 
     /**
      * @brief Build the per-step half-period table at startup.
