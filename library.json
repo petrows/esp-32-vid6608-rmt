@@ -12,6 +12,6 @@
     "email": "petro@petro.ws",
     "url": "https://petro.ws/"
   },
-  "frameworks": "espidf",
+  "frameworks": "espidf,arduino",
   "platforms": "espressif32"
 }
