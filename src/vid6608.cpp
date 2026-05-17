@@ -100,10 +100,6 @@ void vid6608::setPos(int32_t steps) {
     xSemaphoreGive(this->taskNotify);
 }
 
-/**
- * @brief Main control function, checks and feeds for new tasks from queue
- *
- */
 void vid6608::driverTask() {
     do {
         int32_t targetMove = 0; // Now much steps we need to move?

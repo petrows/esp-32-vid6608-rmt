@@ -16,7 +16,7 @@ to avoid skipping steps.
 
 This library is very similar to [Arduino-vid6608](https://github.com/petrows/arduino-vid6608),
 but it implements hardware generator for driver steps sequence,
-the [ESP-32 Remote Control Transceiver (RMT)](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/peripherals/rmt.html)):
+the [ESP-32 Remote Control Transceiver (RMT)](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/peripherals/rmt.html):
 
 * No `delay()` call;
 * Much better precision movement without interrupts and slow-downs for bi-axial instruments;
@@ -68,7 +68,27 @@ See inline documentation in source code: [vid6608.h](src/vid6608.h).
 To compile and flash examples, navigate to example dir and call idf:
 
 ```bash
-examples/gauge-cal
+cd examples/gauge-cal
 export IDF_TARGET=esp32c6
 idf.py flash monitor
+```
+
+## Basic example
+
+```cpp
+#include "vid6608.h"
+
+extern "C" void app_main(void)
+{
+    vid6608::Config cfg {
+        .stepPin   = GPIO_NUM_14,
+        .dirPin    = GPIO_NUM_18,
+        .maxSteps  = 12 * 320,
+    };
+    vid6608 driver = vid6608(cfg);
+
+    driver.zero();
+    vTaskDelay(pdMS_TO_TICKS(2000));
+    driver.setPos(12 * 180);
+}
 ```
