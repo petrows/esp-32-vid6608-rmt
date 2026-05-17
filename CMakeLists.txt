@@ -3,8 +3,13 @@
 cmake_minimum_required(VERSION 3.16)
 
 idf_component_register(
-  INCLUDE_DIRS "src"
-  SRCS "src/vid6608.cpp"
-  REQUIRES driver esp_driver_rmt
-  PRIV_REQUIRES esp_driver_gpio
+  INCLUDE_DIRS
+    "src"
+  SRCS
+    "src/esp32_vid6608_rmt.cpp"
+  REQUIRES
+    driver
+    esp_driver_rmt
+  PRIV_REQUIRES
+    esp_driver_gpio
 )

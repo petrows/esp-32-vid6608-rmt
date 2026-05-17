@@ -1,3 +1,12 @@
+/**
+ * @file esp32_vid6608_rmt.h
+ * @author Petr Golovachev (petro@petro.ws)
+ * @brief Main class of ESP-32 VID6608 RMT driver
+ *
+ * @copyright Copyright (c) 2026
+ *
+ */
+
 #pragma once
 
 #include <array>
@@ -10,7 +19,7 @@
 #include "freertos/semphr.h"
 #include "freertos/task.h"
 
-class vid6608 {
+class esp32_vid6608_rmt {
 public:
     /**
      * @brief Configuration struct
@@ -24,15 +33,15 @@ public:
     };
 
     /**
-     * @brief Construct a new vid6608 object
+     * @brief Construct a new esp32_vid6608_rmt object
      *
      * @param cfg Configuration struct
      */
-    explicit vid6608(const Config &cfg);
-    ~vid6608();
+    explicit esp32_vid6608_rmt(const Config &cfg);
+    ~esp32_vid6608_rmt();
 
-    vid6608(const vid6608 &)            = delete;
-    vid6608 &operator=(const vid6608 &) = delete;
+    esp32_vid6608_rmt(const esp32_vid6608_rmt &)            = delete;
+    esp32_vid6608_rmt &operator=(const esp32_vid6608_rmt &) = delete;
 
     enum MoveState {
       ZERO_BACK_FULL = 0,

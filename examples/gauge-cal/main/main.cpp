@@ -3,7 +3,7 @@
  *
  */
 
-#include "vid6608.h"
+#include "esp32_vid6608_rmt.h"
 
 #include "esp_log.h"
 #include "esp_random.h"
@@ -16,19 +16,19 @@ static const char *TAG = "VID6608";
 
 extern "C" void app_main(void)
 {
-    vid6608::Config m1Cfg {
+    esp32_vid6608_rmt::Config m1Cfg {
         .stepPin   = GPIO_NUM_14,
         .dirPin    = GPIO_NUM_18,
         .maxSteps  = 3950, // 329.2°
     };
-    vid6608 m1 = vid6608(m1Cfg);
+    esp32_vid6608_rmt m1 = esp32_vid6608_rmt(m1Cfg);
 
-    vid6608::Config m2Cfg {
+    esp32_vid6608_rmt::Config m2Cfg {
         .stepPin   = GPIO_NUM_19,
         .dirPin    = GPIO_NUM_20,
         .maxSteps  = 3295, // 274.5°
     };
-    vid6608 m2 = vid6608(m2Cfg);
+    esp32_vid6608_rmt m2 = esp32_vid6608_rmt(m2Cfg);
 
     m1.zero();
     m2.zero();

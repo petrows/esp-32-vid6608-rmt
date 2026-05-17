@@ -5,7 +5,7 @@
  *
  */
 
-#include "vid6608.h"
+#include "esp32_vid6608_rmt.h"
 
 #include "esp_log.h"
 #include "esp_random.h"
@@ -19,7 +19,7 @@ static const char *TAG = "VID6608";
  */
 void backgroundTask(void *arg)
 {
-    vid6608 *drive = static_cast<vid6608 *>(arg);
+    esp32_vid6608_rmt *drive = static_cast<esp32_vid6608_rmt *>(arg);
     for (int x=0; x<128; x++) {
         vTaskDelay(pdMS_TO_TICKS(esp_random() % 2000));
 
@@ -39,21 +39,21 @@ void backgroundTask(void *arg)
 
 extern "C" void app_main(void)
 {
-    esp_log_level_set("vid6608", ESP_LOG_DEBUG);
+    esp_log_level_set("VID6608", ESP_LOG_DEBUG);
 
-    vid6608::Config m1Cfg {
+    esp32_vid6608_rmt::Config m1Cfg {
         .stepPin   = GPIO_NUM_14,
         .dirPin    = GPIO_NUM_18,
         .maxSteps  = 12*325,
     };
-    vid6608 m1 = vid6608(m1Cfg);
+    esp32_vid6608_rmt m1 = esp32_vid6608_rmt(m1Cfg);
 
-    vid6608::Config m2Cfg {
+    esp32_vid6608_rmt::Config m2Cfg {
         .stepPin   = GPIO_NUM_19,
         .dirPin    = GPIO_NUM_20,
         .maxSteps  = 12*275,
     };
-    vid6608 m2 = vid6608(m2Cfg);
+    esp32_vid6608_rmt m2 = esp32_vid6608_rmt(m2Cfg);
 
     ESP_LOGI(TAG, "Zero drives");
 
@@ -65,7 +65,7 @@ extern "C" void app_main(void)
     // Start tasks
     xTaskCreate(
         &backgroundTask,              /* Function to implement the task */
-        "vid6608-1",                  /* Name of the task */
+        "esp32_vid6608_rmt-1",                  /* Name of the task */
         1024,                         /* Stack size in words */
         &m1,                          /* Task input parameter */
         0,                            /* Priority of the task, lowest */
@@ -73,7 +73,7 @@ extern "C" void app_main(void)
     );
     xTaskCreate(
         &backgroundTask,              /* Function to implement the task */
-        "vid6608-2",                  /* Name of the task */
+        "esp32_vid6608_rmt-2",                  /* Name of the task */
         1024,                         /* Stack size in words */
         &m2,                          /* Task input parameter */
         0,                            /* Priority of the task, lowest */
