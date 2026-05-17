@@ -99,6 +99,52 @@ public:
      */
     int32_t     getCurrentPosition() { return this->targetPosition; }
 
+    // -------------------------------------------------------------------------------------------
+    // Old Arduino-vid6608 compat layer
+    // -------------------------------------------------------------------------------------------
+
+    /**
+     * @brief Shedules movement to defined absolute position
+     *
+     * Input is checked for sanity: must be in range 0...maxSteps-1. Values bigger are threated as maxSteps-1.
+     * @warning this function is asynchronous, actual movement is done in the loop() function.
+     * @warning next move will be scheduled after current move is done to avoid drive jittering.
+     *
+     * @param position absolute position in range 0...maxSteps-1
+     */
+    void moveTo(uint16_t position) { setPos(position); }
+
+    /**
+     * @brief Test if motor is moving
+     *
+     * Return true, if drive still have sheduled steps (that means that next loop() call will result impulse).
+     *
+     * @return true if drive is moveemnt
+     * @return false if drive is stopped
+     */
+    bool isMoving();
+
+    /**
+     * @brief Test if motor is stopped
+     *
+     * @return true if drive is stopped
+     * @return false if drive is moveemnt
+     */
+    bool isStopped() { return !isMoving(); }
+
+    /**
+     * @brief Returns current real absolute position
+     *
+     * @return uint16_t current real drive position in steps
+     */
+    uint16_t getPosition() { return (uint16_t)this->targetPosition; }
+
+    /**
+     * @brief Does nothing on RMT
+     *
+     */
+    void loop() {}
+
 private:
     /**
      * @brief Length of the acceleration ramp, in step pulses.

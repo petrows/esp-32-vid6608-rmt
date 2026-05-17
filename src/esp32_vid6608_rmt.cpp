@@ -147,6 +147,14 @@ void esp32_vid6608_rmt::wait(int32_t timeout_ms) {
     }
 }
 
+bool esp32_vid6608_rmt::isMoving() {
+    bool pending;
+    xSemaphoreTake(this->infoMutex, portMAX_DELAY);
+    pending = this->targetPending;
+    xSemaphoreGive(this->infoMutex);
+    return pending;
+}
+
 void esp32_vid6608_rmt::setPos(int32_t steps) {
     // Critical section
     xSemaphoreTake(this->infoMutex, portMAX_DELAY);
