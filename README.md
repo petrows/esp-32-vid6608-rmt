@@ -1,5 +1,7 @@
 # ESP-IDF library to drive Automotive gauge drivers using HW RMT driver
 
+![Moving example](doc/output.gif)
+
 This library implements driver for native ESP-IDF framework
 for following driver chips for analog automotive gauges (Switec X25.168, X27.168 and clones) with microstepping support:
 
