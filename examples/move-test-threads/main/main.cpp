@@ -23,14 +23,14 @@ void backgroundTask(void *arg)
     for (int x=0; x<128; x++) {
         vTaskDelay(pdMS_TO_TICKS(2000));
         int32_t rndMove = esp_random() % drive->getMaxSteps();
-        ESP_LOGI(TAG, "Move to %d", rndMove);
+        ESP_LOGI(TAG, "D%d: Move to %d", drive->getPinStep(), rndMove);
         drive->setPos(rndMove);
-        ESP_LOGI(TAG, "Move sent");
+        ESP_LOGI(TAG, "D%d: Move sent", drive->getPinStep());
         drive->wait();
-        ESP_LOGI(TAG, "Wait done");
+        ESP_LOGI(TAG, "D%d: Wait done", drive->getPinStep());
     }
 
-    ESP_LOGI(TAG, "Thread done");
+    ESP_LOGI(TAG, "D%d: Thread done", drive->getPinStep());
     vTaskDelete(nullptr);
 }
 

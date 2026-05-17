@@ -20,6 +20,7 @@ public:
         gpio_num_t  stepPin;    ///< f(scx) pin
         gpio_num_t  dirPin;     ///< CC/CCWA pin
         uint16_t    maxSteps;   ///< Max steps er full rotation
+        bool        useAccel = true; ///< Enable smoothness
     };
 
     /**
@@ -52,8 +53,10 @@ public:
     /**
      * @brief Wait for current move task to complete
      *
+     * @param timeout_ms max time to wait, -1 for wait forever
+     *
      */
-    void        wait();
+    void        wait(int32_t timeout_ms = 10000);
 
     /**
      * @brief Shedules movement to defined absolute position
@@ -65,6 +68,13 @@ public:
      * @param position absolute position in range 0...maxSteps-1
      */
     void        setPos(int32_t steps);
+
+    /**
+     * @brief Get the driving pin
+     *
+     * @return gpio_num_t driving pin number
+     */
+    gpio_num_t  getPinStep() { return this->config.stepPin; }
 
     /**
      * @brief Get the Max Steps object
@@ -105,6 +115,7 @@ private:
      */
     static const std::array<uint16_t, kAccelSteps> kAccelHalfPeriod;
 
+    void        movePrepare(int32_t steps);
     void        moveRamp(int32_t steps);
     void        moveConst(int32_t steps, int32_t speed_hz);
     void        driverTask();
@@ -118,6 +129,7 @@ private:
     SemaphoreHandle_t    taskNotify = nullptr;
     TaskHandle_t         taskHandle = nullptr;
 
+    bool    targetPending      = false; ///< Do we have next move pending?
     int32_t targetPosition     = 0;    ///< Target position in steps
     int32_t targetPositionNext = 0;    ///< Target position in steps (scheduled for next move)
     uint8_t targetDir          = 254;  ///< Target direction to move
