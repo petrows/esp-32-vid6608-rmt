@@ -11,7 +11,7 @@ jobs:
         example:
             - gauge-cal
             - move-test
-            - move-test-2
+            - move-test-threads
         target:
             - esp32
             - esp32c6
