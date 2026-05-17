@@ -76,7 +76,7 @@ idf.py flash monitor
 ## Basic example
 
 ```cpp
-#include "vid6608.h"
+#include "esp32_vid6608_rmt.h"
 
 extern "C" void app_main(void)
 {
