@@ -1,5 +1,16 @@
 name: ESP-IDF CI
-on: [push]
+on:
+  push:
+    paths:
+      - '.github/workflows/esp-idf.yaml'
+      - 'examples/**'
+      - 'src/**'
+  pull_request:
+    paths:
+      - '.github/workflows/esp-idf.yaml'
+      - 'examples/**'
+      - 'src/**'
+
 jobs:
   build:
     runs-on: self-hosted

@@ -21,8 +21,11 @@ void backgroundTask(void *arg)
 {
     vid6608 *drive = static_cast<vid6608 *>(arg);
     for (int x=0; x<128; x++) {
-        vTaskDelay(pdMS_TO_TICKS(2000));
-        int32_t rndMove = esp_random() % drive->getMaxSteps();
+        vTaskDelay(pdMS_TO_TICKS(esp_random() % 2000));
+
+        // int32_t rndMove = esp_random() % drive->getMaxSteps();
+        int32_t rndMove = esp_random() % (12 * 270);
+
         ESP_LOGI(TAG, "D%d: Move to %d", drive->getPinStep(), rndMove);
         drive->setPos(rndMove);
         ESP_LOGI(TAG, "D%d: Move sent", drive->getPinStep());
