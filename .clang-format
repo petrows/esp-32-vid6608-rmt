@@ -1,16 +1,49 @@
-BasedOnStyle: Google
+# Aligned with ESP-IDF formatting conventions (translated from ESP-IDF's
+# astyle rules: --style=otbs --indent=spaces=4 --align-reference=name
+# --pad-header --pad-oper --unpad-paren --max-continuation-indent=120).
+
+---
+BasedOnStyle: LLVM
 Language: Cpp
+
 ColumnLimit: 120
 IndentWidth: 4
 TabWidth: 4
 UseTab: Never
-SortIncludes: Never
-PPIndentWidth : 1
-IndentPPDirectives: AfterHash
-ReflowComments: true
+ContinuationIndentWidth: 4
+AccessModifierOffset: -4
+
+# OTBS: attach braces everywhere (functions, classes, namespaces, control flow).
+BreakBeforeBraces: Attach
+
+# align-reference=name  ->  `int *name`, `int &name`
+PointerAlignment: Right
+ReferenceAlignment: Right
+DerivePointerAlignment: false
+
+# pad-header  ->  `if (x)`, `while (x)`; unpad-paren  ->  no space inside parens.
+SpaceBeforeParens: ControlStatements
+SpacesInParentheses: false
+SpaceAfterCStyleCast: false
+SpaceBeforeAssignmentOperators: true
 SpacesBeforeTrailingComments: 1
-AlignTrailingComments: true
+
+# keep-one-line-statements
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortBlocksOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+
+SortIncludes: Never
+ReflowComments: true
+
 AlignAfterOpenBracket: Align
+AlignEscapedNewlines: Left
+AlignTrailingComments: true
+AlignOperands: Align
+AlignArrayOfStructures: Right
+
 AlignConsecutiveMacros:
   Enabled: true
   AcrossEmptyLines: true
@@ -25,18 +58,27 @@ AlignConsecutiveDeclarations:
   Enabled: true
   AcrossEmptyLines: false
   AcrossComments: true
-AlignEscapedNewlines: Left
-AccessModifierOffset: -2
-AlignArrayOfStructures: Right
-AlignOperands: Align
-AllowAllArgumentsOnNextLine: false
-AllowShortFunctionsOnASingleLine: Inline
-AllowShortBlocksOnASingleLine: Empty
-BreakBeforeBinaryOperators: None
+AlignConsecutiveBitFields:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: true
+
 BinPackArguments: false
 BinPackParameters: false
-DerivePointerAlignment: false
+AllowAllArgumentsOnNextLine: false
+
+BreakBeforeBinaryOperators: None
+BreakConstructorInitializers: BeforeColon
+BreakInheritanceList: BeforeColon
+PackConstructorInitializers: NextLine
+
+MaxEmptyLinesToKeep: 1
+KeepEmptyLinesAtTheStartOfBlocks: false
+
+IndentPPDirectives: AfterHash
+PPIndentWidth: 1
+IndentCaseLabels: true
+
 PenaltyBreakAssignment: 4
-PenaltyExcessCharacter: 4
 PenaltyBreakBeforeFirstCallParameter: 1
-PointerAlignment: Left
+PenaltyExcessCharacter: 4

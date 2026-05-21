@@ -1,0 +1,39 @@
+# See https://pre-commit.com for setup. Install hooks once with:
+#   pip install pre-commit && pre-commit install
+# Then they run on every `git commit`. Run against the whole tree with:
+#   pre-commit run --all-files
+
+default_stages: [pre-commit]
+
+exclude: |
+  (?x)^(
+    .+/build/.+|
+    \.pio/.+|
+    LICENSE|
+    doc/.*\.(gif|png|jpg|jpeg|svg)
+  )$
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: ['-f=lf']
+      - id: check-merge-conflict
+      - id: check-added-large-files
+      - id: check-yaml
+      - id: check-json
+      - id: check-executables-have-shebangs
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.3.0
+    hooks:
+      - id: codespell
+
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v18.1.8
+    hooks:
+      - id: clang-format
+        types_or: [c, c++]
