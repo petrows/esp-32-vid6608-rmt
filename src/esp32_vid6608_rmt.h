@@ -21,7 +21,7 @@
 
 #include "soc/soc_caps.h"
 #if !SOC_RMT_SUPPORTED
-  #error "RMT is not supported on this platform"
+# error "RMT is not supported on this platform"
 #endif
 
 class esp32_vid6608_rmt {
@@ -31,10 +31,10 @@ public:
      *
      */
     struct Config {
-        gpio_num_t  stepPin;    ///< f(scx) pin
-        gpio_num_t  dirPin;     ///< CC/CCWA pin
-        uint16_t    maxSteps;   ///< Max steps er full rotation
-        bool        useAccel = true; ///< Enable smoothness
+        gpio_num_t stepPin;         ///< f(scx) pin
+        gpio_num_t dirPin;          ///< CC/CCWA pin
+        uint16_t   maxSteps;        ///< Max steps er full rotation
+        bool       useAccel = true; ///< Enable smoothness
     };
 
     /**
@@ -49,8 +49,8 @@ public:
     esp32_vid6608_rmt &operator=(const esp32_vid6608_rmt &) = delete;
 
     enum MoveState {
-      ZERO_BACK_FULL = 0,
-      ZERO_BACK_HALF = -2,
+        ZERO_BACK_FULL = 0,
+        ZERO_BACK_HALF = -2,
     };
 
     /**
@@ -58,11 +58,12 @@ public:
      *
      * Moves full rotation forward and backward
      *
-     * @param initialPos initial position to assume zeroing, default is 0. If you know the "old" gauge position, you can provide it here to avoid end-stop bounce
+     * @param initialPos initial position to assume zeroing, default is 0. If you know the "old" gauge position, you can
+     * provide it here to avoid end-stop bounce
      *
      * @warning this function is blocking, execution is delayed upon done
      */
-    void        zero(int32_t initialPos = ZERO_BACK_HALF);
+    void zero(int32_t initialPos = ZERO_BACK_HALF);
 
     /**
      * @brief Wait for current move task to complete
@@ -70,7 +71,7 @@ public:
      * @param timeout_ms max time to wait, -1 for wait forever
      *
      */
-    void        wait(int32_t timeout_ms = 10000);
+    void wait(int32_t timeout_ms = 10000);
 
     /**
      * @brief Shedules movement to defined absolute position
@@ -81,28 +82,28 @@ public:
      *
      * @param position absolute position in range 0...maxSteps-1
      */
-    void        setPos(int32_t steps);
+    void setPos(int32_t steps);
 
     /**
      * @brief Get the driving pin
      *
      * @return gpio_num_t driving pin number
      */
-    gpio_num_t  getPinStep() { return this->config.stepPin; }
+    gpio_num_t getPinStep() { return this->config.stepPin; }
 
     /**
      * @brief Get the Max Steps object
      *
      * @return uint16_t max steps, defined for this drive
      */
-    uint16_t    getMaxSteps() { return this->config.maxSteps; }
+    uint16_t getMaxSteps() { return this->config.maxSteps; }
 
     /**
      * @brief Get the Current Position object
      *
      * @return int32_t current position (sheduled at this moment, actual move may apply)
      */
-    int32_t     getCurrentPosition() { return this->targetPosition; }
+    int32_t getCurrentPosition() { return this->targetPosition; }
 
     // -------------------------------------------------------------------------------------------
     // Old Arduino-vid6608 compat layer
@@ -181,7 +182,7 @@ private:
     void        driverTask();
     static void driverTaskStart(void *arg);
 
-    bool                 running    = false;
+    bool                 running = false;
     Config               config;
     rmt_channel_handle_t chan       = nullptr;
     rmt_encoder_handle_t enc        = nullptr;
@@ -190,9 +191,9 @@ private:
     TaskHandle_t         taskHandle = nullptr;
 
     bool    targetPending      = false; ///< Do we have next move pending?
-    int32_t targetPosition     = 0;    ///< Target position in steps
-    int32_t targetPositionNext = 0;    ///< Target position in steps (scheduled for next move)
-    uint8_t targetDir          = 254;  ///< Target direction to move
+    int32_t targetPosition     = 0;     ///< Target position in steps
+    int32_t targetPositionNext = 0;     ///< Target position in steps (scheduled for next move)
+    uint8_t targetDir          = 254;   ///< Target direction to move
 
     /**
      * @brief Scratch RMT symbol buffers used by every move.
