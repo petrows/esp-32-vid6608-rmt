@@ -27,7 +27,7 @@ Only the ESP-32 is supported. All chips has minimum 2 RMT channels.
 
 This library has following features:
 
-* More precise Datasheet complaince
+* More precise Datasheet compliance
 * Another smoothing method (requires less calculations)
 * Optimized homing
 * Extended API's

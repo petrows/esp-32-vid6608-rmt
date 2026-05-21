@@ -74,9 +74,9 @@ public:
     void wait(int32_t timeout_ms = 10000);
 
     /**
-     * @brief Shedules movement to defined absolute position
+     * @brief Schedules movement to defined absolute position
      *
-     * Input is checked for sanity: must be in range 0...maxSteps-1. Values bigger are threated as maxSteps-1.
+     * Input is checked for sanity: must be in range 0...maxSteps-1. Values bigger are treated as maxSteps-1.
      * @warning this function is asynchronous, actual movement is done in another task.
      * @warning next move will be scheduled after current move is done to avoid drive jittering.
      *
@@ -101,7 +101,7 @@ public:
     /**
      * @brief Get the Current Position object
      *
-     * @return int32_t current position (sheduled at this moment, actual move may apply)
+     * @return int32_t current position (scheduled at this moment, actual move may apply)
      */
     int32_t getCurrentPosition() { return this->targetPosition; }
 
@@ -110,9 +110,9 @@ public:
     // -------------------------------------------------------------------------------------------
 
     /**
-     * @brief Shedules movement to defined absolute position
+     * @brief Schedules movement to defined absolute position
      *
-     * Input is checked for sanity: must be in range 0...maxSteps-1. Values bigger are threated as maxSteps-1.
+     * Input is checked for sanity: must be in range 0...maxSteps-1. Values bigger are treated as maxSteps-1.
      * @warning this function is asynchronous, actual movement is done in the loop() function.
      * @warning next move will be scheduled after current move is done to avoid drive jittering.
      *
@@ -123,7 +123,7 @@ public:
     /**
      * @brief Test if motor is moving
      *
-     * Return true, if drive still have sheduled steps (that means that next loop() call will result impulse).
+     * Return true, if drive still have scheduled steps (that means that next loop() call will result impulse).
      *
      * @return true if drive is moveemnt
      * @return false if drive is stopped
